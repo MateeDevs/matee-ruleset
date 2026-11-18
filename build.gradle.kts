@@ -1,4 +1,5 @@
 plugins {
+    `maven-publish`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktlint)
 }
@@ -25,4 +26,23 @@ dependencies {
 
 ktlint {
     version.set(libs.versions.ktlint)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("ruleset") {
+            artifact(tasks.jar)
+            pom {
+                name.set("Matee ruleset")
+                description.set("KtLint rules for Kotlin and Compose")
+                url.set("https://github.com/MateeDevs/matee-ruleset")
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "Pages"
+            url = layout.buildDirectory.dir("maven-repository").get().asFile.toURI()
+        }
+    }
 }

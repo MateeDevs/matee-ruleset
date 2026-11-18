@@ -1,18 +1,26 @@
-name: Publish ruleset JAR
+name: Publish ruleset
 
 on:
   push:
     tags:
       - 'v*'
 
-permissions:
-  contents: write
+concurrency:
+  group: ruleset-release
+  cancel-in-progress: false
 
 jobs:
   release:
+    permissions:
+      contents: write
+      pages: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: build/maven-repository
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -23,8 +31,23 @@ jobs:
         run: |
           release_version=$(sed -n 's/^ruleset = "\(.*\)"/\1/p' gradle/libs.versions.toml)
           test "$GITHUB_REF_NAME" = "v$release_version"
-      - name: Build and lint
-        run: ./gradlew --console=plain jar ktlintCheck
+      - name: Build, lint, and generate Maven repository
+        run: ./gradlew --console=plain ktlintCheck publishAllPublicationsToPagesRepository
+      - name: Preserve repository versions
+        shell: bash
+        run: |
+          cd build/maven-repository
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish $GITHUB_REF_NAME"
+            git push origin HEAD:gh-pages
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/maven-repository
       - name: Publish versioned JAR and checksum
         env:
           GH_TOKEN: ${{ github.token }}
@@ -40,3 +63,15 @@ jobs:
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
             --generate-notes
+  deploy:
+    needs: release
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
