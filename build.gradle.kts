@@ -41,7 +41,6 @@ publishing {
     }
     repositories {
         maven {
-            name = "Pages"
             url = layout.buildDirectory.dir("maven-repository").get().asFile.toURI()
         }
     }

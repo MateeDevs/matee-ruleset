@@ -10,7 +10,7 @@ Requires KtLint 1.8.0.
 // settings.gradle.kts
 dependencyResolutionManagement {
     repositories {
-        maven("https://mateedevs.github.io/matee-ruleset")
+        maven("https://raw.githubusercontent.com/MateeDevs/matee-ruleset/maven")
     }
 }
 ```
