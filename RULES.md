@@ -1,6 +1,6 @@
 # Rules
 
-Rules are independently configurable and enabled by default. Single-argument calls may be inline or multiline; the formatter preserves that choice outside standalone Compose UI calls. Compaction preserves comments and respects `max_line_length`. Standard KtLint rules handle indentation and trailing commas.
+Rules are independently configurable and enabled by default. Single-argument calls may be inline or multiline; the formatter preserves that choice outside standalone named-argument Compose UI calls. Compaction preserves comments and respects `max_line_length`, including code after the expression being joined. Standard KtLint rules handle indentation and trailing commas.
 
 Rules prefixed with `compose-` apply inside `@Composable` functions and explicitly annotated composable lambdas, including annotation aliases. Ordinary helper functions keep standard formatting. UI calls are identified by an uppercase callee.
 
@@ -17,21 +17,21 @@ Disable an individual rule with `disabled` instead of `enabled` in its `.editorc
 
 ## Multiline call arguments
 
-Put each argument of a call with two or more parenthesized arguments on a separate line. Applies to constructors and collection factories too; trailing lambdas do not count.
+Put each argument of a call with two or more parenthesized arguments on a separate line when at least one argument is named. Purely positional calls keep their layout unless standard KtLint rules require wrapping for length. Trailing lambdas do not count.
 
 ### KtLint
 
 ```kotlin
-val values = listOf(
-    first,
-    second,
+val value = Result(
+    first = first,
+    second = second,
 )
 ```
 
 ### Disallowed
 
 ```kotlin
-val values = listOf(first, second)
+val value = Result(first = first, second = second)
 ```
 
 Rule id: `matee:multiline-call-arguments`
@@ -186,7 +186,7 @@ ktlint_matee_when-branch-wrapping = enabled
 
 ## Compose single-argument call
 
-Wrap a standalone UI call with one argument in a multiline Compose block. Tiny inline slots such as `label = { Text(text = title) }` may stay compact.
+Wrap a standalone UI call with one named argument in a multiline Compose block. Positional calls such as `LaunchedEffect(key)` keep their layout. Tiny inline slots such as `label = { Text(text = title) }` may stay compact.
 
 ### KtLint
 

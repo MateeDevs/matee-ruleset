@@ -23,6 +23,7 @@ internal class PropertyInitializerWrappingRule : LayoutRule("property-initialize
             fitsOnLine(
                 equals,
                 "= ${initializer.text.lineSequence().first()}",
+                replacedEndOffset = initializer.textRange.startOffset + initializer.text.lineSequence().first().length,
             )
         ) {
             whitespaceBefore(

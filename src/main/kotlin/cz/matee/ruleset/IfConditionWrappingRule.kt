@@ -18,6 +18,7 @@ internal class IfConditionWrappingRule : LayoutRule(
         if (expression.hasComments() || '\n' in condition.text || !fitsOnLine(
                 expression.node,
                 "if (${condition.text})",
+                replacedEndOffset = expression.rightParenthesis?.textRange?.endOffset ?: return,
             )
         ) {
             return

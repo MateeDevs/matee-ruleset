@@ -87,14 +87,24 @@ internal abstract class LayoutRule(
     protected fun fitsOnLine(
         node: ASTNode,
         text: String,
-    ): Boolean =
-        maxLineLength < 0 || node.psi.containingFile.text
-            .substring(
-                0,
-                node.startOffset,
-            )
-            .substringAfterLast('\n')
-            .length + text.length <= maxLineLength
+        replacedEndOffset: Int = node.startOffset + node.textLength,
+    ): Boolean {
+        if (maxLineLength < 0) {
+            return true
+        }
+        val source = node.psi.containingFile.text
+        val prefix = source.substring(0, node.startOffset).substringAfterLast('\n')
+        val remainder = source.substring(replacedEndOffset)
+        val lineSuffix = remainder.substringBefore('\n')
+        // Standard wrapping can pull a closing delimiter up once its expression becomes single-line.
+        val following = remainder.trimStart()
+        val suffix = if (lineSuffix.isBlank() && following.firstOrNull() in setOf(')', ']')) {
+            following.substringBefore('\n')
+        } else {
+            lineSuffix
+        }
+        return prefix.length + text.length + suffix.length <= maxLineLength
+    }
 
     protected fun newlineBefore(
         node: ASTNode,

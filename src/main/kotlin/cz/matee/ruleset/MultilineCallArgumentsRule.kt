@@ -10,7 +10,7 @@ internal class MultilineCallArgumentsRule : LayoutRule("multiline-call-arguments
         emit: (Int, String, Boolean) -> AutocorrectDecision,
     ) {
         val arguments = node.psi as? KtValueArgumentList ?: return
-        if (arguments.arguments.size >= 2) {
+        if (arguments.arguments.size >= 2 && arguments.arguments.any { it.isNamed() }) {
             wrapArguments(
                 arguments,
                 emit,

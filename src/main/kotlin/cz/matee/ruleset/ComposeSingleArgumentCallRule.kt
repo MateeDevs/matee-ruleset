@@ -14,7 +14,9 @@ internal class ComposeSingleArgumentCallRule : LayoutRule("compose-single-argume
         val arguments = node.psi as? KtValueArgumentList ?: return
         val call = arguments.parent as? KtCallExpression ?: return
         val block = call.parent as? KtBlockExpression ?: return
-        if (arguments.arguments.size == 1 && call.isUiCall() && call.isInComposeFunction() && '\n' in block.text) {
+        if (arguments.arguments.singleOrNull()?.isNamed() == true && call.isUiCall() &&
+            call.isInComposeFunction() && '\n' in block.text
+        ) {
             wrapArguments(
                 arguments,
                 emit,
