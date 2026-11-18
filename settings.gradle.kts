@@ -11,4 +11,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "mate-ruleset"
+rootProject.name = "matee-ruleset"

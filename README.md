@@ -1,6 +1,6 @@
-# Mate ruleset
+# Matee ruleset
 
-Reusable Matee KtLint rules for Kotlin call layout and Compose UI layout. The custom ruleset ID is `mate`; rule IDs are `mate:call-layout` and `mate:compose-layout`.
+Reusable Matee KtLint rules for Kotlin call layout and Compose UI layout. The custom ruleset ID is `matee`; rule IDs are `matee:call-layout` and `matee:compose-layout`.
 
 ## Build
 
@@ -11,23 +11,54 @@ Use JDK 21 and the included Gradle wrapper:
 ./gradlew ktlintCheck
 ```
 
-The output is `build/libs/mate-ruleset-0.1.0.jar`. The JAR contains only the custom rules and their ServiceLoader registration. The consumer supplies KtLint 1.8.0. Standard and Compose Rules 0.6.8 are separate rulesets; they are not bundled in this JAR. Versions are maintained in `gradle/libs.versions.toml`.
+The output is `build/libs/matee-ruleset-0.1.0.jar`. The JAR contains only the custom rules and their ServiceLoader registration. The consumer supplies KtLint 1.8.0. Standard and Compose Rules 0.6.8 are separate rulesets; they are not bundled in this JAR. Versions are maintained in `gradle/libs.versions.toml`.
 
 ## Gradle integration
 
-Copy the versioned JAR into the consuming repository and add it to its KtLint Gradle configuration:
+Versioned JARs are published as assets at [GitHub Releases](https://github.com/MateeDevs/matee-ruleset/releases). Add this artifact-only Ivy repository in the consuming build's `settings.gradle.kts` (and in a convention build's settings if it also runs KtLint):
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        exclusiveContent {
+            forRepository {
+                ivy {
+                    name = "MateeRulesetReleases"
+                    url = uri("https://github.com/MateeDevs/matee-ruleset/releases/download")
+                    patternLayout {
+                        artifact("v[revision]/[artifact]-[revision].[ext]")
+                    }
+                    metadataSources {
+                        artifact()
+                    }
+                }
+            }
+            filter {
+                includeModule(
+                    "cz.matee",
+                    "matee-ruleset",
+                )
+            }
+        }
+    }
+}
+```
+
+Then add the versioned dependency to the KtLint Gradle configuration:
 
 ```kotlin
 dependencies {
-    ktlintRuleset(files("tools/ktlint/mate-ruleset-0.1.0.jar"))
+    ktlintRuleset("cz.matee:matee-ruleset:0.1.0")
 }
 ```
+
+The release repository is public; no GitHub token is needed to resolve the JAR. It supplies no transitive dependencies, so consumers must configure KtLint 1.8.0 and Compose Rules 0.6.8 separately. Repositories are restricted to this module so other dependencies continue using the consumer's normal repositories.
 
 Enable the ruleset in the consumer's `.editorconfig`:
 
 ```editorconfig
 [*.{kt,kts}]
-ktlint_mate = enabled
+ktlint_matee = enabled
 ktlint_standard_multiline-expression-wrapping = disabled
 ktlint_standard_chain-method-continuation = disabled
 ij_kotlin_allow_trailing_comma_on_call_site = true
@@ -37,7 +68,18 @@ The `.editorconfig` in this project provides the complete compatible configurati
 
 ## IntelliJ / Android Studio
 
-Add `build/libs/mate-ruleset-0.1.0.jar` under Settings > Tools > KtLint > Custom/External ruleset JARs. Select KtLint 1.8.0 and load Compose Rules separately for the same checks as Gradle.
+Download the versioned JAR from GitHub Releases, then add it under Settings > Tools > KtLint > Custom/External ruleset JARs. Select KtLint 1.8.0 and load Compose Rules separately for the same checks as Gradle.
+
+## Publish a release
+
+Update `ruleset` in `gradle/libs.versions.toml`, commit the change, then push a matching version tag:
+
+```sh
+git tag v0.1.0
+git push origin main v0.1.0
+```
+
+The release workflow verifies that the tag matches the catalog version, builds and lints the JAR, then publishes it with a SHA-256 checksum. Keep published version tags and assets immutable; use a new version for changes.
 
 ## Contract
 

@@ -21,8 +21,11 @@ import org.jetbrains.kotlin.psi.KtProperty
 
 internal abstract class LayoutRule(id: String) :
     Rule(
-        ruleId = RuleId("mate:$id"),
-        about = About(maintainer = "MateeDevs"),
+        ruleId = RuleId("matee:$id"),
+        about = About(
+            maintainer = "MateeDevs",
+            repositoryUrl = "https://github.com/MateeDevs/matee-ruleset",
+        ),
         usesEditorConfigProperties = setOf(
             INDENT_SIZE_PROPERTY,
             MAX_LINE_LENGTH_PROPERTY,
