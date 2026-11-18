@@ -4,10 +4,7 @@ import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtValueArgument
 
-internal class ArgumentValueWrappingRule : LayoutRule(
-    id = "argument-value-wrapping",
-    runAfter = setOf("single-argument-call"),
-) {
+internal class ArgumentValueWrappingRule : LayoutRule("argument-value-wrapping") {
     override fun afterVisitChildNodes(
         node: ASTNode,
         emit: (Int, String, Boolean) -> AutocorrectDecision,

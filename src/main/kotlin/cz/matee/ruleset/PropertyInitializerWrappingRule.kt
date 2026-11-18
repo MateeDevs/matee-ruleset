@@ -7,10 +7,7 @@ import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
 
-internal class PropertyInitializerWrappingRule : LayoutRule(
-    id = "property-initializer-wrapping",
-    runAfter = setOf("single-argument-call"),
-) {
+internal class PropertyInitializerWrappingRule : LayoutRule("property-initializer-wrapping") {
     override fun afterVisitChildNodes(
         node: ASTNode,
         emit: (Int, String, Boolean) -> AutocorrectDecision,

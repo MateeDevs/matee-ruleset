@@ -4,10 +4,7 @@ import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 
-internal class ComparisonWrappingRule : LayoutRule(
-    id = "comparison-wrapping",
-    runAfter = setOf("single-argument-call"),
-) {
+internal class ComparisonWrappingRule : LayoutRule("comparison-wrapping") {
     override fun afterVisitChildNodes(
         node: ASTNode,
         emit: (Int, String, Boolean) -> AutocorrectDecision,

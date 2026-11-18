@@ -8,7 +8,6 @@ class MateeRuleSetProvider : RuleSetProviderV3(RuleSetId("matee")) {
     override fun getRuleProviders(): Set<RuleProvider> =
         setOf(
             RuleProvider { MultilineCallArgumentsRule() },
-            RuleProvider { SingleArgumentCallRule() },
             RuleProvider { ArgumentValueWrappingRule() },
             RuleProvider { PropertyInitializerWrappingRule() },
             RuleProvider { ComparisonWrappingRule() },

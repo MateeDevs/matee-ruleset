@@ -1,6 +1,6 @@
 # Rules
 
-Rules are independently configurable and enabled by default. Compaction preserves comments and respects `max_line_length`. Standard KtLint rules handle indentation and trailing commas.
+Rules are independently configurable and enabled by default. Single-argument calls may be inline or multiline; the formatter preserves that choice outside standalone Compose UI calls. Compaction preserves comments and respects `max_line_length`. Standard KtLint rules handle indentation and trailing commas.
 
 Rules prefixed with `compose-` apply inside `@Composable` functions and explicitly annotated composable lambdas, including annotation aliases. Ordinary helper functions keep standard formatting. UI calls are identified by an uppercase callee.
 
@@ -12,7 +12,7 @@ Rules prefixed with `compose-` apply inside `@Composable` functions and explicit
 Disable an individual rule with `disabled` instead of `enabled` in its `.editorconfig` setting, or suppress it by rule ID:
 
 ```kotlin
-@Suppress("ktlint:matee:single-argument-call")
+@Suppress("ktlint:matee:comparison-wrapping")
 ```
 
 ## Multiline call arguments
@@ -38,30 +38,6 @@ Rule id: `matee:multiline-call-arguments`
 
 ```editorconfig
 ktlint_matee_multiline-call-arguments = enabled
-```
-
-## Single-argument call
-
-Keep a simple single-argument call compact when it fits. Calls used as standalone statements inside Compose blocks retain their layout.
-
-### KtLint
-
-```kotlin
-val title = stringResource(resource)
-```
-
-### Disallowed
-
-```kotlin
-val title = stringResource(
-    resource,
-)
-```
-
-Rule id: `matee:single-argument-call`
-
-```editorconfig
-ktlint_matee_single-argument-call = enabled
 ```
 
 ## Argument value wrapping
