@@ -7,7 +7,17 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleSetId
 class MateeRuleSetProvider : RuleSetProviderV3(RuleSetId("matee")) {
     override fun getRuleProviders(): Set<RuleProvider> =
         setOf(
-            RuleProvider { CallLayoutRule() },
-            RuleProvider { ComposeLayoutRule() },
+            RuleProvider { MultilineCallArgumentsRule() },
+            RuleProvider { SingleArgumentCallRule() },
+            RuleProvider { ArgumentValueWrappingRule() },
+            RuleProvider { PropertyInitializerWrappingRule() },
+            RuleProvider { ComparisonWrappingRule() },
+            RuleProvider { IfConditionWrappingRule() },
+            RuleProvider { WhenBranchWrappingRule() },
+            RuleProvider { ComposeSingleArgumentCallRule() },
+            RuleProvider { ComposeChainWrappingRule() },
+            RuleProvider { ComposeModifierChainWrappingRule() },
+            RuleProvider { ComposeUiSpacingRule() },
+            RuleProvider { ComposeModifierArgumentOrderRule() },
         )
 }

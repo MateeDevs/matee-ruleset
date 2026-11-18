@@ -18,7 +18,7 @@ dependencyResolutionManagement {
 ```kotlin
 // build.gradle.kts
 dependencies {
-    ktlintRuleset("cz.matee:matee-ruleset:0.1.1")
+    ktlintRuleset("cz.matee:matee-ruleset:0.1.0")
 }
 ```
 

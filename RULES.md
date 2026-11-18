@@ -1,48 +1,188 @@
 # Rules
 
-## Call layout
+Rules are independently configurable and enabled by default. Compaction preserves comments and respects `max_line_length`. Standard KtLint rules handle indentation and trailing commas.
 
-Wrap calls with two or more parenthesized arguments, including constructors and collection factories. A trailing lambda does not count as a parenthesized argument. Standalone UI calls in multiline Compose blocks also wrap a single argument; tiny inline slots may stay compact.
+Rules prefixed with `compose-` apply inside `@Composable` functions and explicitly annotated composable lambdas, including annotation aliases. Ordinary helper functions keep standard formatting. UI calls are identified by an uppercase callee.
+
+| Configuration setting | Project default |
+| --- | --- |
+| `indent_size` | `4` |
+| `max_line_length` | `140` |
+
+Disable an individual rule with `disabled` instead of `enabled` in its `.editorconfig` setting, or suppress it by rule ID:
+
+```kotlin
+@Suppress("ktlint:matee:single-argument-call")
+```
+
+## Multiline call arguments
+
+Put each argument of a call with two or more parenthesized arguments on a separate line. Applies to constructors and collection factories too; trailing lambdas do not count.
 
 ### KtLint
 
 ```kotlin
-val statuses = listOf(
-    Open,
-    Closed,
-)
-
-FilterChip(
-    selected = selected,
-    onClick = onClick,
-    label = { Text(text = title) },
+val values = listOf(
+    first,
+    second,
 )
 ```
 
 ### Disallowed
 
 ```kotlin
-val statuses = listOf(Open, Closed)
-
-FilterChip(selected = selected, onClick = onClick, label = { Text(text = title) })
+val values = listOf(first, second)
 ```
 
-Keep simple single-argument calls, short comparisons, conditions, argument values, and initializer receivers together when they fit. Comments and multiline argument expressions prevent compaction. Start a multiline `if` branch below its `when` arrow.
+Rule id: `matee:multiline-call-arguments`
+
+```editorconfig
+ktlint_matee_multiline-call-arguments = enabled
+```
+
+## Single-argument call
+
+Keep a simple single-argument call compact when it fits. Calls used as standalone statements inside Compose blocks retain their layout.
 
 ### KtLint
 
 ```kotlin
 val title = stringResource(resource)
+```
+
+### Disallowed
+
+```kotlin
+val title = stringResource(
+    resource,
+)
+```
+
+Rule id: `matee:single-argument-call`
+
+```editorconfig
+ktlint_matee_single-argument-call = enabled
+```
+
+## Argument value wrapping
+
+Keep a named argument and its single-line value together when they fit.
+
+### KtLint
+
+```kotlin
 consume(
     title = stringResource(resource),
-    options = listOf<Status?>(null) + Status.entries,
+    enabled = enabled,
 )
-if (value == null) {
-    return
+```
+
+### Disallowed
+
+```kotlin
+consume(
+    title =
+        stringResource(resource),
+    enabled = enabled,
+)
+```
+
+Rule id: `matee:argument-value-wrapping`
+
+```editorconfig
+ktlint_matee_argument-value-wrapping = enabled
+```
+
+## Property initializer wrapping
+
+Keep the first line of a call or binary-expression initializer beside `=` when it fits.
+
+### KtLint
+
+```kotlin
+val values = listOf(
+    first,
+    second,
+)
+```
+
+### Disallowed
+
+```kotlin
+val values =
+    listOf(
+        first,
+        second,
+    )
+```
+
+Rule id: `matee:property-initializer-wrapping`
+
+```editorconfig
+ktlint_matee_property-initializer-wrapping = enabled
+```
+
+## Comparison wrapping
+
+Keep a short comparison on one line when both operands are single-line expressions.
+
+### KtLint
+
+```kotlin
+val missing = value == null
+```
+
+### Disallowed
+
+```kotlin
+val missing = value ==
+    null
+```
+
+Rule id: `matee:comparison-wrapping`
+
+```editorconfig
+ktlint_matee_comparison-wrapping = enabled
+```
+
+## If condition wrapping
+
+Keep a short, single-line condition beside its parentheses. Comparison wrapping inside the condition is handled separately.
+
+### KtLint
+
+```kotlin
+if (ready) {
+    work()
 }
+```
+
+### Disallowed
+
+```kotlin
+if (
+    ready
+) {
+    work()
+}
+```
+
+Rule id: `matee:if-condition-wrapping`
+
+```editorconfig
+ktlint_matee_if-condition-wrapping = enabled
+```
+
+## When branch wrapping
+
+Start a multiline `if` expression used as a `when` branch below the arrow.
+
+### KtLint
+
+```kotlin
 when (value) {
     else ->
-        if (enabled) {
+        if (ready) {
             first()
         } else {
             second()
@@ -53,23 +193,8 @@ when (value) {
 ### Disallowed
 
 ```kotlin
-val title =
-    stringResource(
-        resource,
-    )
-consume(
-    title =
-        stringResource(resource),
-    options =
-        listOf<Status?>(null) + Status.entries,
-)
-if (value ==
-    null
-) {
-    return
-}
 when (value) {
-    else -> if (enabled) {
+    else -> if (ready) {
         first()
     } else {
         second()
@@ -77,49 +202,100 @@ when (value) {
 }
 ```
 
-| Configuration setting | Default |
-| --- | --- |
-| `indent_size` | `4` |
-| `max_line_length` | `140` |
-
-Rule id: `matee:call-layout`
-
-Suppress with:
-
-```kotlin
-@Suppress("ktlint:matee:call-layout")
-```
-
-Enable via `.editorconfig` (use `disabled` to disable):
+Rule id: `matee:when-branch-wrapping`
 
 ```editorconfig
-ktlint_matee_call-layout = enabled
+ktlint_matee_when-branch-wrapping = enabled
 ```
 
-## Compose layout
+## Compose single-argument call
 
-Inside `@Composable` functions and explicitly annotated composable lambdas, put each call in a method chain below its receiver. A single call on `Modifier` or `modifier` also wraps. Property references such as `Res.string.title` and single non-modifier calls such as `draft.copy(...)` stay together. Ordinary functions in the same file keep standard chain formatting; annotation aliases are supported.
+Wrap a standalone UI call with one argument in a multiline Compose block. Tiny inline slots such as `label = { Text(text = title) }` may stay compact.
 
-Separate adjacent multiline UI calls and state/UI pairs with a blank line. UI calls are identified by an uppercase callee. Comments between statements retain their grouping.
+### KtLint
 
-Put the named `modifier` argument last inside the parentheses, before any trailing lambda. Incorrect argument order is reported without an automatic fix.
+```kotlin
+Column {
+    Text(
+        text = title,
+    )
+}
+```
+
+### Disallowed
+
+```kotlin
+Column {
+    Text(text = title)
+}
+```
+
+Rule id: `matee:compose-single-argument-call`
+
+```editorconfig
+ktlint_matee_compose-single-argument-call = enabled
+```
+
+## Compose chain wrapping
+
+Put each call in a non-modifier chain below its receiver when the chain contains at least two calls. Property references and single calls such as `draft.copy(...)` stay together.
+
+### KtLint
+
+```kotlin
+val names = values
+    .filter { it.enabled }
+    .map { it.name }
+```
+
+### Disallowed
+
+```kotlin
+val names = values.filter { it.enabled }.map { it.name }
+```
+
+Rule id: `matee:compose-chain-wrapping`
+
+```editorconfig
+ktlint_matee_compose-chain-wrapping = enabled
+```
+
+## Compose modifier chain wrapping
+
+Put every call on `Modifier` or `modifier` below its receiver, including a single call. This rule owns modifier chains; Compose chain wrapping handles other chains.
+
+### KtLint
+
+```kotlin
+modifier = Modifier
+    .fillMaxWidth()
+```
+
+### Disallowed
+
+```kotlin
+modifier = Modifier.fillMaxWidth()
+```
+
+Rule id: `matee:compose-modifier-chain-wrapping`
+
+```editorconfig
+ktlint_matee_compose-modifier-chain-wrapping = enabled
+```
+
+## Compose UI spacing
+
+Separate adjacent multiline UI calls and state/UI pairs with a blank line. Comments between statements retain their grouping.
 
 ### KtLint
 
 ```kotlin
 Text(
     text = title,
-    modifier = Modifier
-        .fillMaxWidth()
-        .padding(space),
 )
 
 Text(
-    text = names
-        .filter { it.isNotBlank() }
-        .joinToString(),
-    modifier = modifier
-        .weight(1f),
+    text = subtitle,
 )
 ```
 
@@ -127,29 +303,43 @@ Text(
 
 ```kotlin
 Text(
-    modifier = Modifier.fillMaxWidth().padding(space),
     text = title,
 )
 Text(
-    text = names.filter { it.isNotBlank() }.joinToString(),
-    modifier = modifier.weight(1f),
+    text = subtitle,
 )
 ```
 
-| Configuration setting | Default |
-| --- | --- |
-| `indent_size` | `4` |
-
-Rule id: `matee:compose-layout`
-
-Suppress with:
-
-```kotlin
-@Suppress("ktlint:matee:compose-layout")
-```
-
-Enable via `.editorconfig` (use `disabled` to disable):
+Rule id: `matee:compose-ui-spacing`
 
 ```editorconfig
-ktlint_matee_compose-layout = enabled
+ktlint_matee_compose-ui-spacing = enabled
+```
+
+## Compose modifier argument order
+
+Put the named `modifier` argument last inside the parentheses, before any trailing lambda. Reports a violation without an automatic fix.
+
+### KtLint
+
+```kotlin
+Text(
+    text = title,
+    modifier = modifier,
+)
+```
+
+### Disallowed
+
+```kotlin
+Text(
+    modifier = modifier,
+    text = title,
+)
+```
+
+Rule id: `matee:compose-modifier-argument-order`
+
+```editorconfig
+ktlint_matee_compose-modifier-argument-order = enabled
 ```

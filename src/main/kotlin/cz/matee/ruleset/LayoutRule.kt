@@ -10,22 +10,27 @@ import com.pinterest.ktlint.rule.engine.core.api.editorconfig.MAX_LINE_LENGTH_PR
 import com.pinterest.ktlint.rule.engine.core.api.prevLeaf
 import com.pinterest.ktlint.rule.engine.core.api.upsertWhitespaceBeforeMe
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
-import org.jetbrains.kotlin.com.intellij.psi.PsiComment
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.PsiWhiteSpace
-import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.kotlin.psi.KtAnnotatedExpression
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.KtValueArgumentList
 
-internal abstract class LayoutRule(id: String) :
+internal abstract class LayoutRule(
+    id: String,
+    runAfter: Set<String> = emptySet(),
+    visitorModifiers: Set<Rule.VisitorModifier> = emptySet(),
+) :
     Rule(
         ruleId = RuleId("matee:$id"),
         about = About(
             maintainer = "MateeDevs",
             repositoryUrl = "https://github.com/MateeDevs/matee-ruleset",
         ),
+        visitorModifiers = visitorModifiers + runAfter.map {
+            VisitorModifier.RunAfterRule(
+                RuleId("matee:$it"),
+                VisitorModifier.RunAfterRule.Mode.REGARDLESS_WHETHER_RUN_AFTER_RULE_IS_LOADED_OR_DISABLED,
+            )
+        }.toSet(),
         usesEditorConfigProperties = setOf(
             INDENT_SIZE_PROPERTY,
             MAX_LINE_LENGTH_PROPERTY,
@@ -38,6 +43,45 @@ internal abstract class LayoutRule(id: String) :
     override fun beforeFirstNode(editorConfig: EditorConfig) {
         indentSize = editorConfig[INDENT_SIZE_PROPERTY]
         maxLineLength = editorConfig[MAX_LINE_LENGTH_PROPERTY]
+    }
+
+    protected fun wrapArguments(
+        arguments: KtValueArgumentList,
+        emit: (Int, String, Boolean) -> AutocorrectDecision,
+    ) {
+        val indentation = arguments.node.lineIndent()
+        arguments.arguments.forEach { argument ->
+            newlineBefore(
+                argument.node,
+                "$indentation${" ".repeat(indentSize)}",
+                "Put each argument on a separate line",
+                emit,
+            )
+        }
+        arguments.rightParenthesis?.let { closing ->
+            newlineBefore(
+                closing.node,
+                indentation,
+                "Put the closing parenthesis on a separate line",
+                emit,
+            )
+        }
+    }
+
+    protected fun wrapChainCalls(
+        node: ASTNode,
+        calls: List<KtQualifiedExpression>,
+        emit: (Int, String, Boolean) -> AutocorrectDecision,
+    ) {
+        val indentation = node.lineIndent() + " ".repeat(indentSize)
+        calls.forEach { call ->
+            newlineBefore(
+                call.operationTokenNode,
+                indentation,
+                "Put each Compose chained call below its receiver",
+                emit,
+            )
+        }
     }
 
     protected fun fitsOnLine(
@@ -87,45 +131,5 @@ internal abstract class LayoutRule(id: String) :
         ) {
             node.upsertWhitespaceBeforeMe(whitespace)
         }
-    }
-}
-
-internal fun ASTNode.lineIndent(): String =
-    psi.containingFile.text
-        .substring(
-            0,
-            startOffset,
-        )
-        .substringAfterLast('\n')
-        .takeWhile { it == ' ' || it == '\t' }
-
-internal fun PsiElement.hasComments(): Boolean =
-    PsiTreeUtil.findChildOfType(
-        this,
-        PsiComment::class.java,
-    ) != null
-
-// Stop at ordinary function boundaries: a file or enclosing composable does not make every helper UI.
-internal fun PsiElement.isInComposeFunction(): Boolean {
-    generateSequence(parent) { it.parent }.forEach { owner ->
-        when (owner) {
-            is KtNamedFunction -> return owner.annotationEntries.any { it.isComposeAnnotation() }
-            is KtAnnotatedExpression ->
-                if (owner.annotationEntries.any { it.isComposeAnnotation() }) {
-                    return true
-                }
-            is KtProperty ->
-                if (owner.typeReference?.annotationEntries.orEmpty().any { it.isComposeAnnotation() }) {
-                    return true
-                }
-        }
-    }
-    return false
-}
-
-private fun KtAnnotationEntry.isComposeAnnotation(): Boolean {
-    val name = shortName?.asString() ?: return false
-    return name == "Composable" || containingKtFile.importDirectives.any {
-        it.aliasName == name && it.importedFqName?.asString() == "androidx.compose.runtime.Composable"
     }
 }
